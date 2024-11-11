@@ -1,0 +1,10 @@
+{
+  "CustomerID": 1,
+  "TotalPurchases": 250.75,
+  "AvgPurchaseAmount": 50.15
+}
+{
+  "CustomerID": 2,
+  "TotalPurchases": 300.25,
+  "AvgPurchaseAmount": 60.05
+}
