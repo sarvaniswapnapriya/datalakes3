@@ -2,35 +2,34 @@ provider "aws" {
   region = "eu-north-1"
 }
 
-# S3 Bucket Configuration
 resource "aws_s3_bucket" "data_lake_bucket" {
   bucket = "coderabbit-s3-data-lake-demo"
   
-  acl = "public-read"  # Mistake: Overly permissive bucket ACL (should be private)
+  acl = "public-read"  
 
   versioning {
-    enabled = false  # Good practice, but ensure that all important objects are versioned
+    enabled = false  
   }
 
   encryption {
-    sse_algorithm = "AES256"  # Good security practice
+    sse_algorithm = "AES256"  
   }
 
   lifecycle {
-    prevent_destroy = false  # Mistake: Preventing destroy could be useful, but here it's not enabled.
+    prevent_destroy = false 
   }
 
   cors_rule {
     allowed_headers = ["*"]
-    allowed_methods = ["GET", "POST", "PUT"]  # Mistake: Allows PUT method from all origins (could be restricted)
-    allowed_origins = ["*"]  # Mistake: Misconfigured CORS - should restrict origins
+    allowed_methods = ["GET", "POST", "PUT"]  
+    allowed_origins = ["*"]  
     max_age_seconds = 3000
   }
 
   logging {
-    target_bucket = "coderabbit-s3-data-lake-demo-logs"  # Mistake: Logging bucket not configured or not created
+    target_bucket = "coderabbit-s3-data-lake-demo-logs"  
     target_prefix = "logs/"
-    enabled        = false  # Mistake: Logging is disabled, should be enabled for monitoring
+    enabled        = false  
   }
 
   tags = {
@@ -39,21 +38,18 @@ resource "aws_s3_bucket" "data_lake_bucket" {
   }
 }
 
-# S3 Object - Raw Data
 resource "aws_s3_bucket_object" "raw_data_object" {
   bucket = aws_s3_bucket.data_lake_bucket.bucket
   key    = "raw_data/customer_data.csv"
   source = "customer_data.csv"
 }
 
-# S3 Object - Processed Data
 resource "aws_s3_bucket_object" "processed_data_object" {
   bucket = aws_s3_bucket.data_lake_bucket.bucket
   key    = "processed_data/sales_data.parquet"
   source = "sales_data.parquet"
 }
 
-# S3 Lifecycle Policies for Object Transition (cost savings, Glacier)
 resource "aws_s3_bucket_lifecycle_configuration" "data_lake_lifecycle" {
   bucket = aws_s3_bucket.data_lake_bucket.bucket
 
@@ -63,20 +59,19 @@ resource "aws_s3_bucket_lifecycle_configuration" "data_lake_lifecycle" {
     prefix  = "raw_data/"
     transition {
       days          = 30
-      storage_class = "GLACIER"  # Mistake: Might be a misconfiguration if data is regularly accessed
+      storage_class = "GLACIER"  
     }
     expiration {
-      days = 365  # Mistake: Might be overly aggressive expiration, data may be needed beyond 1 year
+      days = 365 
     }
   }
 }
 
-# S3 Public Access Block (missing public access block for tighter security)
 resource "aws_s3_bucket_public_access_block" "data_lake_public_access_block" {
   bucket = aws_s3_bucket.data_lake_bucket.bucket
 
-  block_public_acls = true  # Mistake: Public ACLs are not blocked, could leave bucket exposed
-  block_public_policy = true  # Mistake: Policy should be stricter for compliance
+  block_public_acls = true 
+  block_public_policy = true 
 }
 
 output "bucket_name" {
